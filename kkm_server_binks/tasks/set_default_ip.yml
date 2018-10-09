@@ -1,0 +1,8 @@
+---
+- name: set default ip
+  set_fact: default_ip="{{hostvars[inventory_hostname][default_interface]['ipv4']['address']}}"
+  when: default_interface is defined
+
+- name: set default ip
+  set_fact: default_ip="{{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}"
+  when: default_interface is not defined

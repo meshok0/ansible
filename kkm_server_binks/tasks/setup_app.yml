@@ -1,0 +1,75 @@
+---
+
+- name: create application directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0755
+    owner: '{{ kkm_server_binks_deploy_user }}'
+    group: '{{ kkm_server_binks_deploy_user }}'
+  with_items:
+    - '{{ kkm_server_binks_application_directory }}'
+    - '{{ kkm_server_binks_application_directory }}/shared'
+    - '{{ kkm_server_binks_application_directory }}/shared/config'
+
+- name: create application directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0775
+    owner: '{{ kkm_server_binks_user }}'
+    group: '{{ kkm_server_binks_deploy_user }}'
+  with_items:
+    - '{{ kkm_server_binks_application_directory }}/dumps'
+    - '/var/log/kkm'
+    - '/var/run/kkm'
+
+- name: create application configs
+  template:
+    dest: '{{ item.key }}'
+    src: '{{ item.value }}'
+    mode: 0644
+    owner: '{{ kkm_server_binks_deploy_user }}'
+    group: '{{ kkm_server_binks_deploy_user }}'
+  with_dict:
+    '{{ kkm_server_binks_application_directory }}/shared/config/javavm.options': 'javavm.options.j2'
+    '{{ kkm_server_binks_application_directory }}/shared/config/system.properties': 'system.properties.j2'
+    '{{ kkm_server_binks_application_directory }}/shared/config/logback.xml': 'logback.xml.j2'
+    '{{ kkm_server_binks_application_directory }}/shared/config/application.conf': 'application.conf.j2'
+
+- name: replcace appender's string
+  replace:
+    path: '{{ kkm_server_binks_application_directory }}/shared/config/logback.xml'
+    regexp: '<appender-ref ref="FILE"/>'
+  when: logback_file_appender == false
+
+- name: create runit directories for application
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0755
+  with_items:
+    - '/etc/sv/{{ kkm_server_binks_runit_service_name }}'
+    - '/etc/sv/{{ kkm_server_binks_runit_service_name }}/log'
+
+- name: create runit configs for application
+  template:
+    dest: '{{item.key}}'
+    src:  '{{item.value}}'
+    mode: 0755
+#  notify: restart application
+  with_dict:
+    '/etc/sv/{{ kkm_server_binks_runit_service_name }}/run': 'sv_kkm_server_binks_run.j2'
+    '/etc/sv/{{ kkm_server_binks_runit_service_name }}/log/run': 'sv_kkm_server_binks_log_run.j2'
+
+- name: enable application in runit
+  file:
+    src: '/etc/sv/{{ kkm_server_binks_runit_service_name }}'
+    dest: '/etc/service/{{ kkm_server_binks_runit_service_name }}'
+    state: link
+
+- name: start application
+  runit:
+    name: '{{ kkm_server_binks_runit_service_name }}'
+    state: started
+    service_dir: /etc/service

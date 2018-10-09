@@ -1,0 +1,28 @@
+---
+
+- include: set_default_ip.yml
+
+#- include: setup_env.yml
+
+- include: setup_app.yml
+
+#- include_role:
+#    name: logrotate
+#    logrotate_scripts:
+#      - name: '{{ kkm_server_binks_runit_service_name }}_{{ log }}'
+#        path: '{{ kkm_server_binks_log_path }}/{{ kkm_server_binks_runit_service_name }}_{{ log }}'
+#        options:
+#          - daily
+#          - missingok
+#          - notifempty
+#          - copytruncate
+#          - compress
+#          - nodelaycompress
+#          - size 100M
+#          - rotate 7
+#          - create 644 {{ kkm_server_binks_user }} {{ kkm_server_binks_deploy_user }}
+#  with_items:
+#    - err
+#    - out
+#  loop_control:
+#    loop_var: log

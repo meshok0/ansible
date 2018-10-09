@@ -1,0 +1,49 @@
+---
+
+graylog_host: '127.0.0.1'
+graylog_port: '12201'
+
+kkm_server_binks_application_lvm_volume: 'kkm-server-binks'
+kkm_server_binks_application_lvm_group: 'shared'
+kkm_server_binks_application_lvm_size: '5G'
+
+kkm_server_binks_user: 'kkm-server-binks'
+kkm_server_binks_deploy_user: 'deploy'
+kkm_server_binks_application_directory: '/srv/kkm-server-binks'
+kkm_server_binks_runit_service_name: 'kkm-server-binks'
+kkm_server_binks_procname: 'kkm-server-binks'
+
+kkm_server_binks_log_path: '/var/log/kkm'
+kkm_server_binks_log_level: 'INFO'
+kkm_server_binks_root_log_level: 'INFO'
+
+kkm_server_binks_javavmopts:
+  '-XX:+UseG1GC': ''
+
+kkm_server_binks_javasysopts:
+  'com.atomikos.icatch.output_dir': '/var/log/kkm'
+  'com.sun.management.jmxremote': ''
+  'com.sun.management.jmxremote.authenticate': 'false'
+  'com.sun.management.jmxremote.port': '5025'
+  'com.sun.management.jmxremote.ssl': 'false'
+  'file.encoding': 'utf-8'
+  'logback.configurationFile': '{{kkm_server_binks_application_directory}}/current/logback.xml'
+  'user.country': 'RU'
+  'user.language': 'ru'
+  'user.variant': 'RU'
+  'java.rmi.server.hostname': '{{default_ip}}'
+
+kkm_server_binks_config:
+  akka_http:
+    max_connections: '1024'
+    max_open_requests: '1024'
+  listen_host: '0.0.0.0'
+  listen_port: '6653'
+  log_level: 'INFO'
+  receiveTimeout: '5100'
+  idleTimeout: '600'
+  requestTimeout: '200'
+  environment: 'dev'
+  maxPacketSize: '65535'
+  sessionTimeout: '5'
+  isShortResponseInfoMessage: 'false'

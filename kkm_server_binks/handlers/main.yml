@@ -1,0 +1,3 @@
+---
+- name: restart application
+  command: 'sv restart {{ kkm_server_binks_runit_service_name }}'

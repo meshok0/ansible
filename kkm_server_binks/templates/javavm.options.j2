@@ -1,0 +1,7 @@
+{% for key, value in kkm_server_binks_javavmopts|dictsort(false, by='value') %}
+{% if value == '' %}
+{{key}}
+{% else %}
+{{key}}={{value}}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,64 @@
+<configuration>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>{{kkm_server_binks_log_path}}/{{kkm_server_binks_procname}}_log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>{{kkm_server_binks_log_path}}/{{kkm_server_binks_procname}}_log.%i.gz</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>6</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <pattern>%date [%-20t] [%-5level] %-30logger{30} | %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="GELF" class="me.moocar.logbackgelf.GelfAppender">
+        <facility>{{kkm_server_binks_procname}}</facility>
+        <graylog2ServerHost>{{graylog_host}}</graylog2ServerHost>
+        <graylog2ServerPort>{{graylog_port}}</graylog2ServerPort>
+        <graylog2ServerVersion>0.9.6</graylog2ServerVersion>
+        <useLoggerName>true</useLoggerName>
+        <useThreadName>true</useThreadName>
+        <useMarker>true</useMarker>
+        <chunkThreshold>1000</chunkThreshold>
+        <messagePattern>%m %rEx</messagePattern>
+        <shortMessagePattern>%.-100(%m %rEx)</shortMessagePattern>
+        <additionalField>kkm_id:_kkm_id</additionalField>
+        <additionalField>ticket_id:_ticket_id</additionalField>
+        <includeFullMDC>true</includeFullMDC>
+    </appender>
+
+    <root level="{{kkm_server_binks_root_log_level}}">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="GELF"/>
+    </root>
+
+    <logger name="ru.firstlinesoftware.kkm" level="DEBUG"/>
+    <logger name="org.springframework.transaction" level="{{ kkm_server_binks_log_level }}"/>
+    <logger name="org.apache.thrift" level="DEBUG"/>
+    <logger name="com.atomikos" level="ERROR" />
+    <logger name="org.apache.zookeeper" level="ERROR" />
+    <logger name="kafka" level="ERROR" />
+    <logger name="org.apache.curator" level="ERROR" />
+    <logger name="org.epicsquad.kkm.server.queue" level="INFO" />
+    <logger name="org.epicsquad.kkm.server" level="{{ kkm_server_binks_log_level }}" />
+    <logger name="play.core.server.netty.NettyModelConversion" level="ERROR"/>
+    <logger name="org.apache.kafka" level="ERROR" />
+    <logger name="akka.kafka" level="ERROR" />
+    <logger name="akka.http" level="ERROR" />
+    <logger name="org.apache.zookeeper" level="ERROR" />
+    <logger name="com.zaxxer.hikari" level="WARN" />
+    <logger name="slick" level="WARN"/>
+
+    <logger name="org.epicsquad.kkm.server.stream.RequestParsingStage" level="ERROR" />
+    <logger name="akka.io.TcpListener" level="OFF" />
+    <logger name="org.epicsquad.kkm.server.stream.Flows" level="INFO" />
+    <logger name="akka.actor.RepointableActorRef" level="OFF" />
+    <logger name="org.epicsquad.kkm.hsm.HsmConnector" level="OFF" />
+    <logger name="org.epicsquad.kkm.server.Server" level="INFO" />
+    <logger name="org.epicsquad.kkm.server.handler.ConnectionsMonitor" level="INFO" />
+    <logger name="org.epicsquad.kkm.server.handler.KkmStateActor" level="INFO" />
+
+</configuration>

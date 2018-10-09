@@ -1,0 +1,34 @@
+{% if kkm_server_binks_config['akka_http'] is defined %}
+akka.http {
+  host-connection-pool {
+    max-connections = {{ kkm_server_binks_config['akka_http']['max_connections'] }}
+    max-open-requests = {{ kkm_server_binks_config['akka_http']['max_open_requests'] }}
+  }
+}
+{% endif %}
+
+akka {
+  loggers = ["akka.event.slf4j.Slf4jLogger"]
+  loglevel = "{{ kkm_server_binks_config['log_level'] }}"
+  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
+}
+
+kkmServer {
+  interface = "{{ kkm_server_binks_config['listen_host'] }}"
+  port = {{ kkm_server_binks_config['listen_port'] }}
+  receiveTimeout: {{ kkm_server_binks_config['receiveTimeout'] }}
+  idleTimeout: {{ kkm_server_binks_config['idleTimeout'] }}
+  requestTimeout: {{ kkm_server_binks_config['requestTimeout'] }}
+  environment: "{{ kkm_server_binks_config['environment'] }}"
+  maxPacketSize: {{ kkm_server_binks_config['maxPacketSize'] }}
+
+  zshdQueueProducer {
+    servers: "{% for host in groups['kafka'] %}{{ host }}:9092{{ "," if not loop.last else "" }}{% endfor %}"
+    topic: "{{ kkm_server_binks_config['zshdQueueProducer']['topic'] }}"
+    acks: "{{ kkm_server_binks_config['zshdQueueProducer']['acks'] }}"
+  }
+}
+
+zookeeper {
+  url = "{% for host in groups['zookeeper_settings'] %}{{ host }}:2181{{ "," if not loop.last else "" }}{% endfor %}"
+}

@@ -1,0 +1,46 @@
+#!/bin/sh
+set -e
+
+ulimit -n 800000
+
+PROCNAME="{{ kkm_server_binks_runit_service_name }}"
+CLASS="org.epicsquad.kkm.server.Application"
+USER={{ kkm_server_binks_user }}
+DEPLOY_USER={{ kkm_server_binks_deploy_user }}
+HOME="{{ kkm_server_binks_application_directory }}/current"
+
+if [ ! -e "$HOME" ];
+then
+  # service is not deployed yet
+  sleep 10
+  exit 1
+fi
+
+JAVA_HOME="$(readlink -f `which java` | sed 's:bin/.*$::')"
+LOGHOME="/var/log/kkm/$PROCNAME"
+PID=/var/run/kkm/"$PROCNAME".pid
+EXEC=/usr/bin/jsvc
+
+CLASS_PATH="$HOME/conf:$HOME/lib/*"
+
+JAVASYSPROPS=-Dno.system.properties.file.found=true
+if [ -f "$HOME/conf/system.properties" ];
+then
+  JAVASYSPROPS="$(sed '/^\#/d' $HOME/conf/system.properties | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '1s/^/-D/'| sed ':a;N;$!ba;s/\n/ -D/g')"
+fi
+
+JAVAVMOPTS=
+if [ -f "$HOME/conf/javavm.options" ];
+then
+  JAVAVMOPTS="$(sed '/^\#/d' $HOME/conf/javavm.options)"
+fi
+
+mkdir -p /var/run/kkm
+chown $DEPLOY_USER:$DEPLOY_USER /var/run/kkm
+touch $PID
+chown $USER:$DEPLOY_USER $PID
+touch "$LOGHOME"_out "$LOGHOME"_err
+chown $USER:$DEPLOY_USER "$LOGHOME"_out* "$LOGHOME"_err*
+
+cd $HOME
+exec chpst -u $USER $EXEC -procname $PROCNAME -home "$JAVA_HOME" $JAVASYSPROPS $JAVAVMOPTS -cp $CLASS_PATH -user $USER -pidfile $PID -outfile "$LOGHOME"_out -errfile "$LOGHOME"_err -nodetach -jvm server $CLASS

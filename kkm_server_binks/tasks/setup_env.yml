@@ -1,0 +1,83 @@
+---
+
+- name: add deploy group
+  group:
+    name: '{{ kkm_server_binks_deploy_user }}'
+    system: true
+
+- name: add deploy user
+  user:
+    name: '{{ kkm_server_binks_deploy_user }}'
+    groups: '{{ kkm_server_binks_deploy_user }}'
+    append: true
+    system: true
+
+- name: add kkm-server-binks user
+  user:
+    name: '{{ kkm_server_binks_user }}'
+    groups: '{{ kkm_server_binks_deploy_user }}'
+    append: true
+    system: true
+
+- name: install required packages
+  apt: name={{item}} state=installed update_cache=yes
+  with_items:
+     - jsvc
+     - rsync
+     - unzip
+     - bzip2
+     - runit
+
+- shell: dpkg-query -l 'libssl0.9.8'
+  register: dpkg_result
+
+- name: install libssl0.9.8
+  apt:
+    deb: http://mirror.yandex.ru/ubuntu/pool/universe/o/openssl098/libssl0.9.8_0.9.8o-7ubuntu3.2_amd64.deb
+    state: installed
+    when: dpkg_result.stdout != ""
+
+- name: sysctl settings
+  sysctl:
+    name: '{{ item.key }}'
+    value: '{{ item.value }}'
+    sysctl_set: yes
+    state: present
+    ignoreerrors: yes
+  with_dict:
+    net.ipv4.ip_local_port_range: '1024 65535'
+    fs.file-max: '800000'
+
+- name: apply sysctl settings
+  command: /sbin/sysctl -p
+
+- name: create lv
+  lvol:
+    vg: '{{ kkm_server_binks_application_lvm_group }}'
+    lv: '{{ kkm_server_binks_application_lvm_volume }}'
+    size: '{{ kkm_server_binks_application_lvm_size }}'
+
+- name: create filesystem on lv
+  filesystem:
+    fstype: ext4
+    dev: '/dev/{{ kkm_server_binks_application_lvm_group }}/{{ kkm_server_binks_application_lvm_volume }}'
+
+- name: create mount dir for lv
+  file:
+    path: '{{ kkm_server_binks_application_directory }}'
+    state: directory
+    mode: 0755
+
+- name: create fstab entry for lv
+  mount:
+    name: '{{ kkm_server_binks_application_directory }}'
+    src: '/dev/{{ kkm_server_binks_application_lvm_group}}/{{ kkm_server_binks_application_lvm_volume }}'
+    fstype: ext4
+    state: present
+
+- name: mount lvm volume
+  mount:
+    name: '{{ kkm_server_binks_application_directory }}'
+    src: '/dev/{{ kkm_server_binks_application_lvm_group }}/{{ kkm_server_binks_application_lvm_volume }}'
+    fstype: ext4
+    state: mounted
